@@ -1,22 +1,28 @@
 import express from "express";
-import { createWorkout, deleteWorkout, getWorkout, getWorkouts } from "../controllers/workout.controller.js";
-import requireAuth from "../middleware/requireAuth.js";
+import {
+    createWorkout,
+    deleteWorkout,
+    getWorkout,
+    getWorkouts,
+} from "../controllers/workout.controller.js";
+import requireAuth from "../middleware/requireAuth.middleware.js";
+import validateObjectId from "../middleware/validateObjectId.middleware.js";
 
-const workoutsRoutes = express.Router();
+const router = express.Router();
 
 // protect routes
-workoutsRoutes.use(requireAuth);
+router.use(requireAuth);
 
 // GET all workouts
-workoutsRoutes.get("/", getWorkouts);
+router.get("/", getWorkouts);
 
 // GET a single workout
-workoutsRoutes.get("/:id", getWorkout);
+router.get("/:id", validateObjectId, getWorkout);
 
 // POST a new workout
-workoutsRoutes.post("/", createWorkout);
+router.post("/", createWorkout);
 
 // DELETE a single workout
-workoutsRoutes.delete("/:id", deleteWorkout);
+router.delete("/:id", validateObjectId, deleteWorkout);
 
-export default workoutsRoutes;
+export default router;

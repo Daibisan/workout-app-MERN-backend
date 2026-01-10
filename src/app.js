@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 
-import workoutsRoutes from "./routes/workouts.route.js";
-import authRoutes from "./routes/auth.route.js";
+import workoutsRoute from "./routes/workouts.route.js";
+import authRoute from "./routes/auth.route.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
 
+// CORS
 const corsOptions = {
     origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -13,6 +15,8 @@ const corsOptions = {
     credentials: true,
 };
 app.use(cors(corsOptions));
+
+// to get request payload and save it to req.body
 app.use(express.json());
 
 // dev logger
@@ -24,7 +28,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // routes
-app.use("/api/workouts", workoutsRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoute);
+app.use("/api/workouts", workoutsRoute);
+
+// error handler
+app.use(errorHandler);
 
 export default app;
