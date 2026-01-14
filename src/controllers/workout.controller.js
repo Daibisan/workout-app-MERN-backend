@@ -1,12 +1,12 @@
 import WorkoutModel from "../models/workout.model.js";
 import AppError from "../utils/appError.util.js";
 import asyncHandler from "../utils/asyncHandler.util.js";
+import { canAccessWorkout } from "../utils/authorization.util.js";
 
 export const getWorkouts = asyncHandler(async (req, res) => {
-    const user_id = req.user._id;
+    const filter = req.user.role === "admin" ? {} : { user_id: req.user._id };
 
-    // find workouts
-    const workouts = await WorkoutModel.find({ user_id }).sort({
+    const workouts = await WorkoutModel.find(filter).sort({
         createdAt: -1,
     });
 
@@ -15,16 +15,19 @@ export const getWorkouts = asyncHandler(async (req, res) => {
 
 export const getWorkout = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const user_id = req.user._id;
 
-    // find a workout
-    const workout = await WorkoutModel.findOne({ _id: id, user_id });
+    // find workout
+    const workout = WorkoutModel.findById(id);
 
-    // check workout not found
     if (!workout) {
         throw new AppError("No such workout", 404);
     }
 
+    // authorization
+    if (!canAccessWorkout()) {
+        throw new AppError("You are not allowed to view this workout", 403);
+    }
+    
     res.status(200).json({ workout });
 });
 
@@ -53,22 +56,25 @@ export const createWorkout = asyncHandler(async (req, res) => {
 
 export const deleteWorkout = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const user_id = req.user._id;
 
-    // delete workout
-    const deletedWorkout = await WorkoutModel.findOneAndDelete({
-        _id: id,
-        user_id,
-    });
+    // find workout
+    const workout = await WorkoutModel.findById(id);
 
-    // check workout not found
-    if (!deletedWorkout) {
+    if (!workout) {
         throw new AppError("Delete workout: Workout not found!", 404);
     }
 
+    // authorization
+    if (!canAccessWorkout()) {
+        throw new AppError("You are not allowed to view this workout", 403);
+    }
+
+    // delete workout
+    await workout.deleteOne();
+
     res.status(200).json({
         message: "Workout deleted!",
-        workout: deletedWorkout,
+        workout: workout,
     });
 });
 

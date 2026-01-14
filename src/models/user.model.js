@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        role: {
+            type: String,
+            enum: ["user", "admin"],
+            default: "user",
+        },
     },
     { timestamps: true }
 );
@@ -49,7 +54,10 @@ userSchema.statics.register = async function (email, password) {
     // add user to mongoDB
     const user = await this.create({ email, password: hash });
 
-    return user._id;
+    return {
+        _id: user._id,
+        role: user.role,
+    };
 };
 
 // static login method
@@ -73,7 +81,10 @@ userSchema.statics.login = async function (email, password) {
         throw new AppError("Invalid login credentials", 401);
     }
 
-    return user._id;
+    return {
+        _id: user._id,
+        role: user.role,
+    };
 };
 
 const UserModel = mongoose.model("User", userSchema);

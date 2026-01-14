@@ -5,11 +5,11 @@ import AppError from "../utils/appError.util.js";
 import asyncHandler from "../utils/asyncHandler.util.js";
 
 // create jwt token
-const createToken = (_id) => {
-    return jwt.sign({ _id }, process.env.JWT_SECRET, { expiresIn: "3d" });
+const createToken = (_id, role) => {
+    return jwt.sign({ _id, role }, process.env.JWT_SECRET, { expiresIn: "3d" });
 };
 
-export const register = asyncHandler(async (req, res, next) => {
+export const register = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     // check empty input
@@ -19,12 +19,12 @@ export const register = asyncHandler(async (req, res, next) => {
 
     // create user & token
     const createdUser = await UserModel.register(email, password);
-    const token = createToken(createdUser._id);
+    const token = createToken(createdUser._id, createdUser.role);
 
     res.status(201).json({ email, token });
 });
 
-export const login = asyncHandler(async (req, res, next) => {
+export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     // check empty input
@@ -34,7 +34,7 @@ export const login = asyncHandler(async (req, res, next) => {
 
     // create user & token
     const authenticatedUser = await UserModel.login(email, password);
-    const token = createToken(authenticatedUser._id);
+    const token = createToken(authenticatedUser._id, authenticatedUser.role);
 
     res.status(200).json({ email, token });
 });

@@ -19,7 +19,7 @@ const requireAuth = asyncHandler(async (req, res, next) => {
     try {
         // verify token
         const token = authorization.split(" ")[1];
-        const { _id } = jwt.verify(token, process.env.JWT_SECRET);
+        const { _id, role } = jwt.verify(token, process.env.JWT_SECRET);
 
         // verify user_id
         const user = await UserModel.findOne({ _id }).select("_id");
@@ -28,7 +28,7 @@ const requireAuth = asyncHandler(async (req, res, next) => {
         }
 
         // save user_id to request
-        req.user = user;
+        req.user = { _id, role };
         next();
     } catch (error) {
         if (process.env.NODE_ENV === "development") {
